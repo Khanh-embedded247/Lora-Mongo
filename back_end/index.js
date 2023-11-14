@@ -5,6 +5,8 @@ const http = require('http');
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth");
+const userRoute = require("./routes/user")
+
 dotenv.config();
 const app = express();
 
@@ -20,7 +22,9 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 
-console.log('hello');
+//ROUTES
+app.use("/v1/auth", authRoute);
+app.use("/v1/user", userRoute)
 
 
 const server = http.createServer(app);
@@ -29,8 +33,6 @@ server.listen(3000, () => {
   console.log("Server is running!");
 });
 
-//AUTHENTICATION
-//AUTHORIZATION
 
-// //ROUTES
-// app.use("/v1/auth", authRoute);
+
+//json web token
