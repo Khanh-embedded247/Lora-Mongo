@@ -6,7 +6,8 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const authRoute = require("./routes/auth");
 const userRoute = require("./routes/user")
-
+const mqtt = require('mqtt');
+const Device=require('./models/Device');
 dotenv.config();
 const app = express();
 
@@ -26,13 +27,56 @@ app.use(express.json());
 app.use("/v1/auth", authRoute);
 app.use("/v1/user", userRoute)
 
+// MQTT connection
+const mqttClient = mqtt.connect('mqtt://mqtt_broker_url'); 
 
-const server = http.createServer(app);
+// mqttClient.on('connect', () => {
+//   console.log('Connected to MQTT broker');
+//   mqttClient.subscribe('', (data) => {
+  
+//   // mqttCLinet.sub('create_esp', () => )
+//   // });
 
-server.listen(3000, () => {
-  console.log("Server is running!");
+//   // 
+// });
+
+mqttClient.on('message', (topic, message) => {
+  // Xử lý dữ liệu nhận được từ esp32
+  const data = JSON.parse(message.toString());
+  updateDeviceData(data);
 });
 
+// Hàm cập nhật dữ liệu thiết bị trong MongoDB
+async function updateDeviceData(data) {
+  try {
+    const { esp32_id, sensors, fan, led } = data;
+
+    // Tìm thiết bị theo esp32_id
+    const device = await Device.findOne({ 'esp32.esp32_id': esp32_id });
+
+    if (device) {
+      // Cập nhật dữ liệu cảm biến
+      device.esp32.sensors = sensors;
+
+      // Cập nhật trạng thái quạt và đèn
+      device.fan = fan;
+      device.led = led;
+
+      await device.save();
+      console.log(`Updated device data for esp32_id: ${esp32_id}`);
+    } else {
+      console.log(`Device with esp32_id ${esp32_id} not found`);
+    }
+  } catch (error) {
+    console.error('Error updating device data:', error);
+  }
+}
+
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
 
 //json web token
