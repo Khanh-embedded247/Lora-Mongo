@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 #define DHT_PIN 15
-#define MQ135_PIN 17
+#define MQ135_PIN 12
 #define FAN_PIN 27
 #define LIGHT_PIN 14
 
@@ -65,6 +65,20 @@ void loop() {
 
 void readAndSendData() {
     readSensorData();
+
+    if (sensorData.temp < 30 && sensorData.hum > 60) {
+        sensorData.light = true;
+    } else {
+        sensorData.light = false;
+    }
+
+    bool previousFanStatus = sensorData.fan;
+
+    if (sensorData.mq > 10) {
+        sensorData.fan = true;
+    } else {
+        sensorData.fan = false;
+    }
 
     // Kiểm tra xem có yêu cầu bật quạt và đèn không
     digitalWrite(FAN_PIN, sensorData.fan ? LOW : HIGH);
