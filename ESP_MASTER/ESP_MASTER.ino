@@ -32,6 +32,7 @@ int numConnectedDevices = 0;
 
 void setup() {
   Serial.begin(115200);
+  Serial.println(WiFi.macAddress());
   connectToWiFi();
   client.setServer(mqtt_server, mqtt_port);
   connectToMQTT();
@@ -182,7 +183,7 @@ void handleLoRaData() {
 
     // Chuẩn bị dữ liệu JSON để gửi lên MQTT
     DynamicJsonDocument mqttJson(1024);
-    mqttJson["master"] = masterId;
+    mqttJson["mac"] = WiFi.macAddress();
     JsonArray deviceArray = mqttJson.createNestedArray("devices");
 
     for (int i = 0; i < numConnectedDevices; ++i) {
